@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      jegy:
+        description: Jegy száma, ha ezt a futást egy jegyhez kell kötni
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -70,6 +76,8 @@ jobs:
               const match = String(pr.body || "").match(/Jegy:\s*#(\d+)/);
               if (match) numbers.add(Number(match[1]));
             }
+            const typed = String(context.payload.inputs?.jegy || "").trim();
+            if (/^\d+$/.test(typed)) numbers.add(Number(typed));
             if (numbers.size === 0) {
               core.info("A commit nem hivatkozik jegyre.");
               return;
