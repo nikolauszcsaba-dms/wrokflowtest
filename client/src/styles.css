@@ -251,10 +251,37 @@ h1 {
 }
 
 .profile {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas:
+        "data avatar"
+        "password avatar";
+    align-items: start;
     gap: 16px;
-    max-width: 480px;
+    max-width: 880px;
+}
+
+.profile-data {
+    grid-area: data;
+}
+
+.profile-password {
+    grid-area: password;
+}
+
+.profile-avatar {
+    grid-area: avatar;
+}
+
+@media (max-width: 960px) {
+    .profile {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "data"
+            "password"
+            "avatar";
+        max-width: 480px;
+    }
 }
 
 .card {
@@ -295,8 +322,14 @@ h1 {
 
 .avatar-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 16px;
+}
+
+.avatar-row input {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .hint {
