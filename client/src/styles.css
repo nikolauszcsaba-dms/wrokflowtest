@@ -38,6 +38,11 @@ h1 {
     color: #1f2933;
 }
 
+.btn-danger {
+    background: #dc2626;
+    color: #fff;
+}
+
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -318,6 +323,12 @@ h1 {
 .profile-form .btn {
     align-self: flex-start;
     margin-top: 8px;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .avatar-row {

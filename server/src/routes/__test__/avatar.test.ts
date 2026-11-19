@@ -92,6 +92,73 @@ it('stores the avatar and returns it for the current user', async () => {
     expect(profileResponse.body.avatarUrl).toEqual(uploadResponse.body.avatarUrl);
 });
 
+it('returns 401 when deleting the avatar without authentication', async () => {
+    await request(app)
+        .delete('/api/users/avatar')
+        .send()
+        .expect(401);
+});
+
+it('deletes the avatar so the default image is shown again', async () => {
+    const cookie = await global.signin();
+
+    await upload(cookie, png).expect(200);
+
+    const deleteResponse = await request(app)
+        .delete('/api/users/avatar')
+        .set('Cookie', cookie)
+        .send()
+        .expect(200);
+
+    expect(deleteResponse.body.avatarUrl).toBeNull();
+    expect(deleteResponse.body.email).toEqual('test@test.com');
+
+    await request(app)
+        .get('/api/users/avatar')
+        .set('Cookie', cookie)
+        .send()
+        .expect(404);
+
+    const profileResponse = await request(app)
+        .get('/api/users/profile')
+        .set('Cookie', cookie)
+        .send()
+        .expect(200);
+
+    expect(profileResponse.body.avatarUrl).toBeNull();
+});
+
+it('succeeds when the user has no avatar to delete', async () => {
+    const cookie = await global.signin();
+
+    const response = await request(app)
+        .delete('/api/users/avatar')
+        .set('Cookie', cookie)
+        .send()
+        .expect(200);
+
+    expect(response.body.avatarUrl).toBeNull();
+});
+
+it('keeps the avatar of other users', async () => {
+    const cookie = await global.signin();
+    const otherCookie = await global.signin('other@test.com');
+
+    await upload(otherCookie, png).expect(200);
+
+    await request(app)
+        .delete('/api/users/avatar')
+        .set('Cookie', cookie)
+        .send()
+        .expect(200);
+
+    await request(app)
+        .get('/api/users/avatar')
+        .set('Cookie', otherCookie)
+        .send()
+        .expect(200);
+});
+
 it('does not let the upload change the email', async () => {
     const cookie = await global.signin();
 
