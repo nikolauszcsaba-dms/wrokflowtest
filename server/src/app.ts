@@ -1,3 +1,4 @@
+import path from 'node:path';
 import express from 'express';
 import cookieSession from 'cookie-session';
 
@@ -27,6 +28,15 @@ app.use(currentUserRouter);
 app.use(signinRouter);
 app.use(signoutRouter);
 app.use(signupRouter);
+
+if (process.env.CLIENT_DIR) {
+    const clientDir = path.resolve(process.env.CLIENT_DIR);
+
+    app.use(express.static(clientDir));
+    app.get(/^\/(?!api(\/|$)).*/, (_req, res) => {
+        res.sendFile(path.join(clientDir, 'index.html'));
+    });
+}
 
 app.use(() => {
     throw new NotFoundError();
