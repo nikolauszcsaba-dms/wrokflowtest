@@ -51,7 +51,7 @@ const AvatarForm = () => {
     };
 
     return (
-        <form className="card profile-form" onSubmit={handleSubmit}>
+        <form className="card profile-form profile-avatar" onSubmit={handleSubmit}>
             <h2>Profilkép</h2>
             <div className="avatar-row">
                 <Avatar url={user.avatarUrl} size="large" />
@@ -113,7 +113,7 @@ const PasswordForm = () => {
     };
 
     return (
-        <form className="card profile-form" onSubmit={handleSubmit}>
+        <form className="card profile-form profile-password" onSubmit={handleSubmit}>
             <h2>Jelszó módosítása</h2>
             <label htmlFor="currentPassword">Jelenlegi jelszó</label>
             <input {...field('currentPassword')} autoComplete="current-password" />
@@ -136,14 +136,14 @@ const Profile = () => {
         <>
             <h1>Profil szerkesztése</h1>
             <div className="profile">
-                <section className="card profile-form">
+                <section className="card profile-form profile-data">
                     <h2>Adatok</h2>
                     <label htmlFor="email">E-mail-cím</label>
                     <input id="email" type="email" value={user.email} readOnly disabled />
                     <p className="hint">Az e-mail-cím nem módosítható.</p>
                 </section>
-                <AvatarForm />
                 <PasswordForm />
+                <AvatarForm />
             </div>
         </>
     );
