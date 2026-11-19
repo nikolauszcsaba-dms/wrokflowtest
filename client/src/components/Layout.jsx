@@ -4,7 +4,9 @@ import UserMenu from './UserMenu';
 const Layout = () => (
     <div className="layout">
         <aside className="sidebar">
-            <div className="sidebar-title">Workflow teszt</div>
+            <div className="sidebar-logo">
+                <span className="sidebar-title">Workflow teszt</span>
+            </div>
             <nav>
                 <NavLink to="/dashboard" className="menu-item">Dashboard</NavLink>
             </nav>
