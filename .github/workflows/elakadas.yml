@@ -1,0 +1,141 @@
+name: Elakadás
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: elakadas
+  cancel-in-progress: false
+
+jobs:
+  figyel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/github-script@v7
+        env:
+          ELAKADAS_PERC: ${{ vars.ELAKADAS_PERC }}
+        with:
+          script: |
+            const fs = require("fs");
+
+            const rawLimit = process.env.ELAKADAS_PERC;
+            const limit = Number(rawLimit);
+            if (!rawLimit || !Number.isInteger(limit) || limit <= 0) {
+              core.setFailed("Az ELAKADAS_PERC változó hiányzik, vagy nem pozitív egész perc.");
+              return;
+            }
+
+            const rules = fs.readFileSync("AGENTS.md", "utf8");
+            const developerMatch = rules.match(/hagyhatja jóvá:\s*(\S+)/);
+            if (!developerMatch) {
+              core.setFailed("Az AGENTS.md nem nevezi meg az élesítést jóváhagyó fejlesztőt.");
+              return;
+            }
+            const developer = developerMatch[1];
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: "open",
+              per_page: 100,
+            });
+            const tickets = issues.filter((issue) => !issue.pull_request);
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: "open",
+              per_page: 100,
+            });
+
+            const hasLabel = (issue, name) =>
+              issue.labels.some((label) => (typeof label === "string" ? label : label.name) === name);
+
+            const hasPullRequest = (number) => {
+              const needle = new RegExp("Jegy:\\s*#" + number + "\\b");
+              return pulls.some((pr) => needle.test(pr.body || ""));
+            };
+
+            let reported = 0;
+
+            for (const issue of tickets) {
+              if (hasLabel(issue, "kézi")) {
+                core.info("#" + issue.number + ": kézi címke, az óra áll.");
+                continue;
+              }
+              if (hasPullRequest(issue.number)) {
+                core.info("#" + issue.number + ": van nyitott pull request.");
+                continue;
+              }
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+              const tasks = comments.filter((comment) => /^Feladat:/m.test(comment.body || ""));
+              if (tasks.length === 0) {
+                core.info("#" + issue.number + ": nincs Feladat megjegyzés, az óra nem indult el.");
+                continue;
+              }
+
+              let clockStart = new Date(tasks[tasks.length - 1].created_at);
+              const events = await github.paginate(github.rest.issues.listEvents, {
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+              const removals = events.filter(
+                (event) =>
+                  event.event === "unlabeled" &&
+                  event.label &&
+                  event.label.name === "kézi" &&
+                  new Date(event.created_at) > clockStart
+              );
+              if (removals.length > 0) {
+                clockStart = new Date(removals[removals.length - 1].created_at);
+              }
+
+              const ageMinutes = (Date.now() - clockStart.getTime()) / 60000;
+              if (ageMinutes < limit) {
+                core.info(
+                  "#" + issue.number + ": " + Math.floor(ageMinutes) + " perce tart, a határ " + limit + " perc."
+                );
+                continue;
+              }
+
+              const already = comments.some(
+                (comment) => new Date(comment.created_at) > clockStart && /^Elakadás:/m.test(comment.body || "")
+              );
+              if (already) {
+                core.info("#" + issue.number + ": az elakadást már jeleztük.");
+                continue;
+              }
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body:
+                  "Elakadás: a feladat " +
+                  limit +
+                  " perce a jegyen van, és nincs hozzá pull request. A fejlesztő: " +
+                  developer,
+              });
+              reported += 1;
+              core.info("#" + issue.number + ": elakadás jelezve.");
+            }
+
+            core.info("Jelzett jegyek: " + reported);
