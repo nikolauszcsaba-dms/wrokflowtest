@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
 const rules = [...css.matchAll(/(?:^|\n)([^{}\n][^{}]*?)\s*\{([^}]*)\}/g)].map(([, selector, body]) => ({
-    selector: selector.trim(),
+    selectors: selector.split(',').map((part) => part.trim()),
     declarations: Object.fromEntries(
         body
             .split(';')
@@ -15,23 +15,16 @@ const rules = [...css.matchAll(/(?:^|\n)([^{}\n][^{}]*?)\s*\{([^}]*)\}/g)].map((
 }));
 
 const rule = (selector) => {
-    const found = rules.find((candidate) => candidate.selector === selector);
-    assert.ok(found, `${selector} szabály hiányzik`);
-    return found.declarations;
+    const found = rules.filter((candidate) => candidate.selectors.includes(selector));
+    assert.ok(found.length, `${selector} szabály hiányzik`);
+    return Object.assign({}, ...found.map(({ declarations }) => declarations));
 };
 
 const menuBlue = '#2563eb';
 
 test('a menüpontnak alapból nincs háttere', () => {
     assert.equal(rule('.menu-item').background, 'transparent');
-});
-
-test('az aktív menüpontnak sincs háttere, de felismerhető marad', () => {
-    const active = rule('.menu-item.active');
-
-    assert.equal(active.background, undefined);
-    assert.equal(active['background-color'], undefined);
-    assert.equal(active.color, '#fff');
+    assert.equal(rule('.menu-item').color, '#e4e7eb');
 });
 
 test('egérrel fölé víve a menüpont a kék hátteret kapja fehér felirattal', () => {
@@ -41,17 +34,25 @@ test('egérrel fölé víve a menüpont a kék hátteret kapja fehér felirattal
     assert.equal(hover.color, '#fff');
 });
 
-test('a hover szabály az aktív szabály után áll, így az aktív menüpont is kék lesz hoverre', () => {
-    const order = rules.map((candidate) => candidate.selector);
+test('az aktív menüpont ugyanazt a hátteret és feliratszínt kapja, mint a hover', () => {
+    const active = rule('.menu-item.active');
+    const hover = rule('.menu-item:hover');
 
-    assert.ok(order.indexOf('.menu-item:hover') > order.indexOf('.menu-item.active'));
+    assert.equal(active.background, menuBlue);
+    assert.equal(active.background, hover.background);
+    assert.equal(active.color, hover.color);
 });
 
-test('a kék háttér csak a hover szabályban szerepel a menüpontoknál', () => {
-    const blueMenuRules = rules
-        .filter(({ selector }) => selector.includes('.menu-item'))
-        .filter(({ declarations }) => [declarations.background, declarations['background-color']].includes(menuBlue))
-        .map(({ selector }) => selector);
+test('az aktív menüpont felirata vastagabb marad', () => {
+    assert.equal(rule('.menu-item.active')['font-weight'], '600');
+});
 
-    assert.deepEqual(blueMenuRules, ['.menu-item:hover']);
+test('a kék háttér csak az aktív és a hover állapotban szerepel a menüpontoknál', () => {
+    const blueMenuSelectors = rules
+        .filter(({ declarations }) => [declarations.background, declarations['background-color']].includes(menuBlue))
+        .flatMap(({ selectors }) => selectors)
+        .filter((selector) => selector.includes('.menu-item'))
+        .sort();
+
+    assert.deepEqual(blueMenuSelectors, ['.menu-item.active', '.menu-item:hover']);
 });
