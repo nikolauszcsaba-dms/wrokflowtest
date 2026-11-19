@@ -3,13 +3,19 @@ import { apiRequest } from './api';
 
 const AuthContext = createContext(null);
 
+const loadUser = async () => {
+    const { currentUser } = await apiRequest('GET', '/api/users/currentuser');
+
+    return currentUser ? apiRequest('GET', '/api/users/profile') : null;
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        apiRequest('GET', '/api/users/currentuser')
-            .then((data) => setUser(data.currentUser))
+        loadUser()
+            .then(setUser)
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
     }, []);
@@ -30,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signin, signup, signout }}>
+        <AuthContext.Provider value={{ user, loading, signin, signup, signout, setUser }}>
             {children}
         </AuthContext.Provider>
     );

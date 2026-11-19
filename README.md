@@ -2,7 +2,7 @@
 
 Egyszerű webes alkalmazás a fejlesztési folyamat kipróbálásához. React kliens, Node.js szerver és MongoDB, egy konténerben.
 
-Funkciók: regisztráció, bejelentkezés, kijelentkezés. Belépés után a bal oldalon egy menü van, benne egy üres Dashboard.
+Funkciók: regisztráció, bejelentkezés, kijelentkezés. Belépés után a bal oldalon egy menü van, benne egy üres Dashboard. A fejlécben a felhasználóra kattintva lenyíló menü nyílik: a profil szerkesztése (jelszócsere, profilkép feltöltése) és a kijelentkezés.
 
 ## Futtatás konténerben
 

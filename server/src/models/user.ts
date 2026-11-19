@@ -10,11 +10,33 @@ interface UserModel extends mongoose.Model<UserDoc> {
     build(attrs: UserAttrs): UserDoc;
 }
 
+interface Avatar {
+    data: Buffer;
+    contentType: string;
+    updatedAt: Date;
+}
+
 interface UserDoc extends mongoose.Document {
     id: string;
     email: string;
     password: string;
+    avatar?: Avatar;
 }
+
+const avatarSchema = new mongoose.Schema({
+    data: {
+        type: Buffer,
+        required: true,
+    },
+    contentType: {
+        type: String,
+        required: true,
+    },
+    updatedAt: {
+        type: Date,
+        required: true,
+    },
+}, { _id: false });
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -26,12 +48,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    avatar: {
+        type: avatarSchema,
+        required: false,
+    },
 }, {
     toJSON: {
         transform(_doc, ret) {
-            const { _id, __v, password, ...rest } = ret;
+            const { _id, __v, password, avatar, ...rest } = ret;
+            const avatarUrl = avatar?.updatedAt
+                ? `/api/users/avatar?v=${new Date(avatar.updatedAt).getTime()}`
+                : null;
 
-            return { id: _id, ...rest };
+            return { id: _id, ...rest, avatarUrl };
         },
     },
 });

@@ -4,8 +4,11 @@ import cookieSession from 'cookie-session';
 
 import { NotFoundError } from './errors/not-found-error';
 import { errorHandler } from './middlewares/error-handler';
+import { avatarRouter } from './routes/avatar';
+import { changePasswordRouter } from './routes/change-password';
 import { currentUserRouter } from './routes/current-user';
 import { healthRouter } from './routes/health';
+import { profileRouter } from './routes/profile';
 import { signinRouter } from './routes/signin';
 import { signoutRouter } from './routes/signout';
 import { signupRouter } from './routes/signup';
@@ -25,6 +28,9 @@ app.use(
 
 app.use(healthRouter);
 app.use(currentUserRouter);
+app.use(profileRouter);
+app.use(changePasswordRouter);
+app.use(avatarRouter);
 app.use(signinRouter);
 app.use(signoutRouter);
 app.use(signupRouter);
