@@ -132,10 +132,10 @@ h1 {
 }
 
 .menu-item.active {
-    color: #fff;
     font-weight: 600;
 }
 
+.menu-item.active,
 .menu-item:hover {
     background: #2563eb;
     color: #fff;
