@@ -126,15 +126,17 @@ h1 {
     display: block;
     padding: 8px;
     border-radius: 6px;
+    background: transparent;
     color: #e4e7eb;
     text-decoration: none;
 }
 
-.menu-item:hover {
-    background: #323f4b;
+.menu-item.active {
+    color: #fff;
+    font-weight: 600;
 }
 
-.menu-item.active {
+.menu-item:hover {
     background: #2563eb;
     color: #fff;
 }
