@@ -5,12 +5,12 @@ export class ApiError extends Error {
     }
 }
 
-export const apiRequest = async (method, url, body) => {
+const send = async (method, url, headers, body) => {
     const response = await fetch(url, {
         method,
         credentials: 'same-origin',
-        headers: body ? { 'Content-Type': 'application/json' } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
+        headers,
+        body,
     });
 
     const data = await response.json().catch(() => ({}));
@@ -21,3 +21,17 @@ export const apiRequest = async (method, url, body) => {
 
     return data;
 };
+
+export const apiRequest = (method, url, body) => send(
+    method,
+    url,
+    body ? { 'Content-Type': 'application/json' } : undefined,
+    body ? JSON.stringify(body) : undefined
+);
+
+export const apiUpload = (method, url, file) => send(
+    method,
+    url,
+    { 'Content-Type': file.type || 'application/octet-stream' },
+    file
+);

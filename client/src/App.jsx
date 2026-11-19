@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './auth';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 
@@ -32,6 +33,7 @@ const App = () => (
         <Route path="/signup" element={<GuestOnly><SignUp /></GuestOnly>} />
         <Route element={<RequireAuth><Layout /></RequireAuth>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
