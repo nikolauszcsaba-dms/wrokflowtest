@@ -134,6 +134,30 @@ h1 {
     border-bottom: 1px solid #e4e7eb;
 }
 
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e4e7eb;
+    color: #52606d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.avatar svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
 .user-email {
     font-size: 14px;
     color: #52606d;
