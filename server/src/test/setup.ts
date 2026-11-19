@@ -5,7 +5,7 @@ import request from 'supertest';
 import { app } from '../app';
 
 declare global {
-    var signin: () => Promise<string[]>;
+    var signin: (email?: string) => Promise<string[]>;
 }
 
 let mongo: MongoMemoryServer;
@@ -39,11 +39,11 @@ afterAll(async () => {
     }
 });
 
-global.signin = async () => {
+global.signin = async (email = 'test@test.com') => {
     const response = await request(app)
         .post('/api/users/signup')
         .send({
-            email: 'test@test.com',
+            email,
             password: 'password',
         })
         .expect(201);

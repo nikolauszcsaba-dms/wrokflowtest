@@ -64,4 +64,17 @@ router.put(
     }
 );
 
+router.delete('/api/users/avatar', currentUser, requireAuth, async (req: Request, res: Response) => {
+    const user = await User.findById(req.currentUser!.id);
+
+    if (!user) {
+        throw new NotAuthorizedError();
+    }
+
+    user.set('avatar', undefined);
+    await user.save();
+
+    res.send(user);
+});
+
 export { router as avatarRouter };

@@ -50,6 +50,20 @@ const AvatarForm = () => {
         }
     };
 
+    const handleDelete = async () => {
+        setErrors([]);
+        setSuccess('');
+        setSubmitting(true);
+        try {
+            setUser(await apiRequest('DELETE', '/api/users/avatar'));
+            setSuccess('A profilkép törölve.');
+        } catch (err) {
+            setErrors(toErrors(err));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <form className="card profile-form profile-avatar" onSubmit={handleSubmit}>
             <h2>Profilkép</h2>
@@ -65,9 +79,16 @@ const AvatarForm = () => {
             </div>
             <p className="hint">PNG, JPEG, WebP vagy GIF, legfeljebb 1 MB.</p>
             <Messages errors={errors} success={success} />
-            <button type="submit" className="btn btn-primary" disabled={!file || submitting}>
-                Feltöltés
-            </button>
+            <div className="form-actions">
+                <button type="submit" className="btn btn-primary" disabled={!file || submitting}>
+                    Feltöltés
+                </button>
+                {user.avatarUrl && (
+                    <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={submitting}>
+                        Profilkép törlése
+                    </button>
+                )}
+            </div>
         </form>
     );
 };
