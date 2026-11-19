@@ -1,0 +1,27 @@
+name: Teszt
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  teszt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: A teszt adatbázis letöltése
+        working-directory: server
+        run: node -e "require('mongodb-memory-server').MongoMemoryServer.create().then((server) => server.stop())"
+
+      - run: npm test
