@@ -8,6 +8,8 @@ on:
 permissions:
   contents: read
   id-token: write
+  issues: write
+  pull-requests: read
 
 jobs:
   telepites:
@@ -38,3 +40,54 @@ jobs:
           --set-secrets=JWT_KEY=JWT_KEY:latest
           --set-env-vars=COOKIE_SECURE=true
           --quiet
+
+      - id: cim
+        run: |
+          url="$(gcloud run services describe wrokflowtest --project=devworkflowtest --region=europe-west1 --format='value(status.url)')"
+          echo "url=${url}" >> "$GITHUB_OUTPUT"
+          code="$(curl -sS -o /tmp/health.json -w '%{http_code}' "${url}/api/health")"
+          if [ "$code" != "200" ] || ! grep -q '"status":"ok"' /tmp/health.json; then
+            echo "A smoke teszt nem sikerült: ${code}"
+            cat /tmp/health.json
+            exit 1
+          fi
+
+      - uses: actions/github-script@v8
+        env:
+          SERVICE_URL: ${{ steps.cim.outputs.url }}
+        with:
+          script: |
+            const url = process.env.SERVICE_URL;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: context.sha,
+            });
+            const numbers = new Set();
+            for (const pr of pulls.data) {
+              const match = String(pr.body || "").match(/Jegy:\s*#(\d+)/);
+              if (match) numbers.add(Number(match[1]));
+            }
+            if (numbers.size === 0) {
+              core.info("A commit nem hivatkozik jegyre.");
+              return;
+            }
+            for (const number of numbers) {
+              const issue = await github.rest.issues.get({ owner, repo, issue_number: number });
+              if (issue.data.pull_request || issue.data.state === "closed") continue;
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body: "Elkészült.\n" + url,
+              });
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: number,
+                state: "closed",
+                state_reason: "completed",
+              });
+            }
