@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 jobs:
   beolvasztas:
@@ -15,6 +15,11 @@ jobs:
     steps:
       - name: Automatikus beolvadás
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MERGE_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
-        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --merge
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "A MERGE_TOKEN secret hiányzik."
+            exit 1
+          fi
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --merge
