@@ -1,0 +1,13 @@
+{
+  "name": "wrokflowtest",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace server",
+    "build": "npm run build --workspace server",
+    "test": "npm test --workspace server"
+  }
+}
