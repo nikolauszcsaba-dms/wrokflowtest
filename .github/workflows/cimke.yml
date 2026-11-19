@@ -1,0 +1,117 @@
+name: Címke
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  issues:
+    types: [labeled, unlabeled]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  cimke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const blocking = ["veszélyes", "kézi"];
+
+            function labelName(label) {
+              return typeof label === "string" ? label : label.name;
+            }
+
+            function issueNumberFrom(text) {
+              const match = String(text || "").match(/Jegy:\s*#(\d+)/);
+              return match ? Number(match[1]) : null;
+            }
+
+            async function describe(issueNumber) {
+              if (!issueNumber) {
+                return { blocked: false, summary: "A pull request nem hivatkozik jegyre." };
+              }
+
+              const { data: issue } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+              });
+              const hit = issue.labels.map(labelName).filter((name) => blocking.includes(name));
+
+              if (hit.length > 0) {
+                return {
+                  blocked: true,
+                  summary: "A #" + issueNumber + " jegyen rajta van: " + hit.join(", ") + ".",
+                };
+              }
+
+              return {
+                blocked: false,
+                summary: "A #" + issueNumber + " jegyen nincs veszélyes vagy kézi címke.",
+              };
+            }
+
+            async function publish(sha, result) {
+              await github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: "cimke",
+                head_sha: sha,
+                status: "completed",
+                conclusion: result.blocked ? "failure" : "success",
+                output: {
+                  title: result.blocked
+                    ? "A jegy címkéje megállítja a beolvadást"
+                    : "A jegy nem állítja meg a beolvadást",
+                  summary: result.summary,
+                },
+              });
+            }
+
+            if (context.eventName === "issues") {
+              const changed = context.payload.label && context.payload.label.name;
+              if (!blocking.includes(changed)) {
+                core.info("Ez a címke nem állítja meg a beolvadást: " + changed);
+                return;
+              }
+
+              const issueNumber = context.payload.issue.number;
+              const pulls = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "open",
+                per_page: 100,
+              });
+              const needle = new RegExp("Jegy:\\s*#" + issueNumber + "\\b");
+              const linked = pulls.filter((pr) => needle.test(pr.body || ""));
+
+              if (linked.length === 0) {
+                core.info("Nincs nyitott pull request a #" + issueNumber + " jegyhez.");
+                return;
+              }
+
+              let blocked = false;
+              for (const pr of linked) {
+                const result = await describe(issueNumber);
+                if (result.blocked) {
+                  blocked = true;
+                }
+                await publish(pr.head.sha, result);
+                core.info("#" + pr.number + ": " + result.summary);
+              }
+
+              if (blocked) {
+                core.setFailed("Van olyan pull request, amelynek a jegye veszélyes vagy kézi.");
+              }
+              return;
+            }
+
+            const result = await describe(issueNumberFrom(context.payload.pull_request.body));
+            core.info(result.summary);
+            if (result.blocked) {
+              core.setFailed(result.summary);
+            }
