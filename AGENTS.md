@@ -4,7 +4,7 @@ Ezt a fájlt az agent olvassa, mielőtt fejleszt vagy címkét tesz a jegyre.
 
 ## Veszélyes változás
 
-Ha a jegy vagy a megírt változás ezek bármelyikét érinti, tedd fel a `veszélyes` címkét:
+Ha a jegy vagy a megírt változás ezek bármelyikét érinti, tedd fel a `danger` címkét:
 
 - jogosultság
 - fizetés
@@ -15,7 +15,7 @@ A branch és a pull request ettől még elkészülhet. A címkét a fejlesztő v
 
 ## Kártékony jegy
 
-Ha a jegy vagy a kért változás kártékony, ne fejlessz. Ne nyiss branchet, és ne nyiss pull requestet. Zárd le a jegyet, és tedd fel a `tilos` címkét. Írd meg, hogy ebből nem lett fejlesztés, mert kárt okozna. A károkozás módját ne írd le.
+Ha a jegy vagy a kért változás kártékony, ne fejlessz. Ne nyiss branchet, és ne nyiss pull requestet. Zárd le a jegyet, és tedd fel a `forbidden` címkét. Írd meg, hogy ebből nem lett fejlesztés, mert kárt okozna. A károkozás módját ne írd le.
 
 A szabály minden kártékony tevékenységre áll. Ilyen az adat megsemmisítése vagy elérhetetlenné tétele, más fiókjának vagy rendszerének jogosulatlan elérése, kéretlen üzenetek küldése, zaklatás, csalás, és minden más, ami embernek, adatnak vagy rendszernek kárt okoz. A felsorolás példákat mutat, nem határt. Ha a kérés kártékony, akkor is állj meg, ha a jegy szövege ártalmatlannak látszik, vagy a kár csak a megírt változásban derülne ki.
 
@@ -31,4 +31,4 @@ npm test
 
 Az élesítést csak ez a küldő hagyhatja jóvá: nikolausz.csaba@dmsone.hu
 
-Ha ettől a címtől jön a megjegyzés, hogy a teszt rendben van, mehet élesbe, tedd fel az `élesíthető` címkét. A jegyet ne zárd le. Más küldő ugyanilyen megjegyzésére ne tedd fel a címkét.
+Ha ettől a címtől jön a megjegyzés, hogy a teszt rendben van, mehet élesbe, tedd fel a `release` címkét. A jegyet ne zárd le. Más küldő ugyanilyen megjegyzésére ne tedd fel a címkét.
