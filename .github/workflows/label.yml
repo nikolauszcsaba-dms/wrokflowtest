@@ -11,15 +11,17 @@ permissions:
   issues: read
   pull-requests: read
   checks: write
+  actions: write
 
 jobs:
-  cimke:
+  label:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/github-script@v8
         with:
           script: |
-            const blocking = ["veszélyes", "kézi"];
+            const blocking = ["danger", "manual"];
 
             function labelName(label) {
               return typeof label === "string" ? label : label.name;
@@ -51,25 +53,44 @@ jobs:
 
               return {
                 blocked: false,
-                summary: "A #" + issueNumber + " jegyen nincs veszélyes vagy kézi címke.",
+                summary: "A #" + issueNumber + " jegyen nincs danger vagy manual címke.",
               };
             }
 
-            async function publish(sha, result) {
-              await github.rest.checks.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: "cimke",
-                head_sha: sha,
-                status: "completed",
-                conclusion: result.blocked ? "failure" : "success",
-                output: {
-                  title: result.blocked
-                    ? "A jegy címkéje megállítja a beolvadást"
-                    : "A jegy nem állítja meg a beolvadást",
-                  summary: result.summary,
-                },
-              });
+            async function rerun(pr) {
+              const deadline = Date.now() + 10 * 60 * 1000;
+              while (Date.now() < deadline) {
+                const { data } = await github.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: "label.yml",
+                  head_sha: pr.head.sha,
+                  event: "pull_request",
+                  per_page: 5,
+                });
+                const run = (data.workflow_runs || []).find((item) => item.head_sha === pr.head.sha);
+                if (!run) {
+                  core.info("#" + pr.number + ": még nincs címke-ellenőrzés.");
+                  return;
+                }
+                if (run.status === "completed") {
+                  try {
+                    await github.rest.actions.reRunWorkflow({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      run_id: run.id,
+                    });
+                    core.info("#" + pr.number + ": a címke-ellenőrzés újra fut.");
+                    return;
+                  } catch (error) {
+                    core.info("#" + pr.number + ": az újrafuttatás még nem indult: " + error.message);
+                  }
+                } else {
+                  core.info("#" + pr.number + ": a címke-ellenőrzés még fut, várok.");
+                }
+                await new Promise((resolve) => setTimeout(resolve, 10000));
+              }
+              core.setFailed("#" + pr.number + ": a címke-ellenőrzés nem futott újra időben.");
             }
 
             if (context.eventName === "issues") {
@@ -94,18 +115,8 @@ jobs:
                 return;
               }
 
-              let blocked = false;
               for (const pr of linked) {
-                const result = await describe(issueNumber);
-                if (result.blocked) {
-                  blocked = true;
-                }
-                await publish(pr.head.sha, result);
-                core.info("#" + pr.number + ": " + result.summary);
-              }
-
-              if (blocked) {
-                core.setFailed("Van olyan pull request, amelynek a jegye veszélyes vagy kézi.");
+                await rerun(pr);
               }
               return;
             }
