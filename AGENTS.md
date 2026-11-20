@@ -29,6 +29,14 @@ Kell a címke, ha a fenti területek valamelyikében:
 
 Ha egy szöveg mellett az is változik, mikor jelenik meg, vagy milyen adat kerül bele, az már logika. Ha nem tudod eldönteni, tedd fel a címkét.
 
+Tedd fel a `danger` címkét akkor is, ha a változás ezeken a területeken kívül esik, de a védelmet gyengíti, vagy a rendszer alapját cseréli:
+
+- a lekérdezés nem paraméterezett, vagy egy meglévő paraméterezés kikerül
+- az adatbázis motorja másra cserélődik
+- a program más nyelven íródik újra
+- titok, jelszó vagy kulcs a kódba vagy a repóba kerül
+- a hitelesítés, az ellenőrzés vagy a naplózás kikapcsolódik
+
 A branch és a pull request ettől még elkészülhet. A címkét a fejlesztő veszi le, ha átnézte a változást.
 
 ## Kártékony jegy
