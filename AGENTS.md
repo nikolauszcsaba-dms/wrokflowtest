@@ -47,6 +47,6 @@ npm test
 
 ## Élesítés
 
-Az élesítést csak ez a küldő hagyhatja jóvá: nikolausz.csaba@dmsone.hu
+Az élesítést csak az `approver` fájlban lévő küldő hagyhatja jóvá. A fájl a repó gyökerében van, és egy sort tartalmaz: a címet a csatornán.
 
 Ha ettől a címtől jön a megjegyzés, hogy a teszt rendben van, mehet élesbe, tedd fel a `release` címkét. A jegyet ne zárd le. Más küldő ugyanilyen megjegyzésére ne tedd fel a címkét.
