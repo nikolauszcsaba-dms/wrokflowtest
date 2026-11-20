@@ -29,6 +29,7 @@ const Layout = () => {
                 </div>
                 <nav>
                     <NavLink to="/dashboard" className="menu-item" onClick={closeMenu}>Dashboard</NavLink>
+                    <NavLink to="/blog" className="menu-item" onClick={closeMenu}>Blog</NavLink>
                 </nav>
             </aside>
             {menuOpen && <div className="sidebar-backdrop" aria-hidden="true" onClick={closeMenu} />}
