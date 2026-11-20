@@ -27,15 +27,21 @@ Kell a címke, ha a fenti területek valamelyikében:
 - más adatot mentünk, mutatunk meg, küldünk ki vagy naplózunk, mint eddig
 - a logikát átírjuk, akkor is, ha a viselkedésnek elvileg nem kellene változnia
 
-Ha egy szöveg mellett az is változik, mikor jelenik meg, vagy milyen adat kerül bele, az már logika. Ha nem tudod eldönteni, tedd fel a címkét.
+Ha egy szöveg mellett az is változik, mikor jelenik meg, vagy milyen adat kerül bele, az már logika.
 
-Tedd fel a `danger` címkét akkor is, ha a változás ezeken a területeken kívül esik, de a védelmet gyengíti, vagy a rendszer alapját cseréli:
+Tedd fel a `danger` címkét akkor is, ha a változás ezeken a területeken kívül esik, de gyengíti a védelmet, vagy kicseréli a rendszer alapját.
 
-- a lekérdezés nem paraméterezett, vagy egy meglévő paraméterezés kikerül
-- az adatbázis motorja másra cserélődik
-- a program más nyelven íródik újra
-- titok, jelszó vagy kulcs a kódba vagy a repóba kerül
-- a hitelesítés, az ellenőrzés vagy a naplózás kikapcsolódik
+Védelem minden, ami megakadályozza a jogosulatlan hozzáférést, vagy hogy a hibás vagy rosszindulatú bemenet kárt okozzon, illetve ami utólag kideríthetővé teszi, mi történt. Ilyen például a hitelesítés, a bemenet ellenőrzése, a paraméterezett lekérdezés, a titkosítás, a titkok elkülönített tárolása és a naplózás. A védelem gyengül, ha:
+
+- egy meglévő védelem kikerül, kikapcsol, enyhül, vagy megkerülhetővé válik
+- egy új kód kimarad abból a védelemből, amelyet a hasonló meglévő kód használ
+- titok, jelszó vagy kulcs olyan helyre kerül, ahol többen láthatják, mint eddig, például a kódba, a repóba, a naplóba vagy egy hibaüzenetbe
+
+A rendszer alapja az az összetevő, amelyre a program nagy része épül, például a programnyelv, a keretrendszer, az adatbázis-motor, a futtatókörnyezet vagy a hitelesítést végző szolgáltatás. Ha ezek közül bármelyik másra cserélődik, tedd fel a címkét.
+
+Nem kell a címke, ha a változás új védelmet ad hozzá, vagy egy meglévőt szigorít, és közben nem módosítja a fenti területek logikáját.
+
+Ha nem tudod eldönteni, kell-e a címke, tedd fel.
 
 A branch és a pull request ettől még elkészülhet. A címkét a fejlesztő veszi le, ha átnézte a változást.
 
