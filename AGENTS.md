@@ -4,12 +4,30 @@ Ezt a fájlt az agent olvassa, mielőtt fejleszt vagy címkét tesz a jegyre.
 
 ## Veszélyes változás
 
-Ha a jegy vagy a megírt változás ezek bármelyikét érinti, tedd fel a `danger` címkét:
+Tedd fel a `danger` címkét, ha a jegy olyan változást kér, vagy a megírt változás olyat tartalmaz, amely módosítja a program logikáját ezek valamelyikében:
 
-- jogosultság
-- fizetés
-- személyes adat
-- törlő vagy átnevező migráció
+- jogosultság: ki léphet be, ki mit láthat, és ki mit tehet
+- fizetés: mennyi pénz mozog, kitől, kinek és mikor
+- személyes adat: milyen személyes adatot gyűjtünk, tárolunk, adunk ki, és mikor töröljük
+- adatbázis: tábla, oszlop vagy adat törlése vagy átnevezése migrációval
+
+Logika az a kód, amely dönt, ellenőriz, számol, ment, töröl, vagy adatot ad ki. Nem logika az, amit az ember olvas vagy lát. A döntést az alapján hozd meg, hogy milyen fajta kód változik. Az nem számít, melyik oldalhoz, funkcióhoz vagy fájlhoz tartozik.
+
+Nem kell a címke, bármelyik oldalon vagy funkcióban van a változás:
+
+- szöveg: hibaüzenet, felirat, e-mail vagy értesítés szövegének átfogalmazása vagy fordítása
+- megjelenés: szín, elrendezés, ikon, sorrend a képernyőn
+- dokumentáció és kódmegjegyzés
+- teszt, ha a tesztelt kód nem változik
+
+Kell a címke, ha a fenti területek valamelyikében:
+
+- feltétel vagy ellenőrzés változik: mikor engedünk, mikor tiltunk, mi kötelező
+- számítás változik
+- más adatot mentünk, mutatunk meg, küldünk ki vagy naplózunk, mint eddig
+- a logikát átírjuk, akkor is, ha a viselkedésnek elvileg nem kellene változnia
+
+Ha egy szöveg mellett az is változik, mikor jelenik meg, vagy milyen adat kerül bele, az már logika. Ha nem tudod eldönteni, tedd fel a címkét.
 
 A branch és a pull request ettől még elkészülhet. A címkét a fejlesztő veszi le, ha átnézte a változást.
 

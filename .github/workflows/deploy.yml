@@ -6,7 +6,7 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      jegy:
+      issue:
         description: Jegy száma, ha ezt a futást egy jegyhez kell kötni
         required: false
         type: string
@@ -101,11 +101,11 @@ jobs:
                 commit_sha: sha,
               });
               for (const pr of pulls.data) {
-                const match = String(pr.body || "").match(/Jegy:\s*#(\d+)/);
+                const match = String(pr.body || "").match(/Issue:\s*#(\d+)/);
                 if (match) numbers.add(Number(match[1]));
               }
             }
-            const typed = String(context.payload.inputs?.jegy || "").trim();
+            const typed = String(context.payload.inputs?.issue || "").trim();
             if (/^\d+$/.test(typed)) numbers.add(Number(typed));
             if (numbers.size === 0) {
               core.info("A commit nem hivatkozik jegyre.");

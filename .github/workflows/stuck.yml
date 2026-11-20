@@ -49,7 +49,7 @@ jobs:
               issue.labels.some((label) => (typeof label === "string" ? label : label.name) === name);
 
             const hasPullRequest = (number) => {
-              const needle = new RegExp("Jegy:\\s*#" + number + "\\b");
+              const needle = new RegExp("Issue:\\s*#" + number + "\\b");
               return pulls.some((pr) => needle.test(pr.body || ""));
             };
 

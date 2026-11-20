@@ -28,7 +28,7 @@ jobs:
             }
 
             function issueNumberFrom(text) {
-              const match = String(text || "").match(/Jegy:\s*#(\d+)/);
+              const match = String(text || "").match(/Issue:\s*#(\d+)/);
               return match ? Number(match[1]) : null;
             }
 
@@ -107,7 +107,7 @@ jobs:
                 state: "open",
                 per_page: 100,
               });
-              const needle = new RegExp("Jegy:\\s*#" + issueNumber + "\\b");
+              const needle = new RegExp("Issue:\\s*#" + issueNumber + "\\b");
               const linked = pulls.filter((pr) => needle.test(pr.body || ""));
 
               if (linked.length === 0) {
