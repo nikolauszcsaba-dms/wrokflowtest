@@ -14,6 +14,7 @@ interface CommentDoc extends mongoose.Document {
     author: mongoose.Types.ObjectId;
     body: string;
     parent: mongoose.Types.ObjectId | null;
+    moderated: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -42,6 +43,10 @@ const commentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Comment',
         default: null,
+    },
+    moderated: {
+        type: Boolean,
+        default: false,
     },
 }, {
     timestamps: true,

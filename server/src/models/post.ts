@@ -13,6 +13,7 @@ interface PostDoc extends mongoose.Document {
     description: string;
     author: mongoose.Types.ObjectId;
     createdAt: Date;
+    editedAt: Date | null;
 }
 
 interface PostModel extends mongoose.Model<PostDoc> {
@@ -38,6 +39,10 @@ const postSchema = new mongoose.Schema({
         required: true,
         default: () => new Date(),
         immutable: true,
+    },
+    editedAt: {
+        type: Date,
+        default: null,
     },
 }, {
     toJSON: {
