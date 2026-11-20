@@ -42,7 +42,7 @@ router.put(
         const passwordsMatch = await Password.compare(user.password, currentPassword);
 
         if (!passwordsMatch) {
-            throw new BadRequestError('Current password is incorrect');
+            throw new BadRequestError('A jelenlegi jelszó hibás');
         }
 
         user.password = newPassword;

@@ -29,9 +29,8 @@ it('rejects an incorrect current password', async () => {
         currentPassword: 'wrongpassword',
     }).expect(400);
 
-    expect(response.body.errors[0].message).toEqual('Current password is incorrect');
+    expect(response.body.errors[0].message).toEqual('A jelenlegi jelszó hibás');
 });
-
 it('rejects a missing current password', async () => {
     const cookie = await global.signin();
 
