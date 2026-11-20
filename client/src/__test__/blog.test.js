@@ -119,11 +119,12 @@ test('a bal menüben van Blog menüpont, és a /blog oldalakra visz', () => {
     assert.match(protectedRoutes, /path="\/blog"/);
 });
 
-test('a lista a címet, a rövid szöveget és egy megnyitás gombot mutat', () => {
+test('a lista a címet, a rövid szöveget és egy Tovább... linket mutat', () => {
     assert.match(blogJsx, /\{post\.title\}/);
     assert.match(blogJsx, /\{post\.excerpt\}/);
     assert.doesNotMatch(blogJsx, /post\.description/);
-    assert.match(blogJsx, /<Link to=\{`\/blog\/\$\{post\.id\}`\} className="btn btn-secondary">Megnyitás<\/Link>/);
+    assert.match(blogJsx, /<Link to=\{`\/blog\/\$\{post\.id\}`\} className="post-more">Tovább\.\.\.<\/Link>/);
+    assert.doesNotMatch(blogJsx, /Megnyitás/);
 });
 
 test('a válasz fejlécében jobb oldalon link mutat az előzményre', () => {

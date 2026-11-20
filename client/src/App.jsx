@@ -4,6 +4,7 @@ import { useAuth } from './auth';
 import Layout from './components/Layout';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import BlogPostForm from './pages/BlogPostForm';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
@@ -37,7 +38,9 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/new" element={<BlogPostForm />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/blog/:id/edit" element={<BlogPostForm />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

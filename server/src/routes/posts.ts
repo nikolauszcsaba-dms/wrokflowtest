@@ -15,6 +15,7 @@ import { excerpt } from '../services/excerpt';
 export const MAX_TITLE_LENGTH = 200;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_COMMENT_LENGTH = 2000;
+export const MODERATED_COMMENT_TEXT = 'A post írója által moderálva';
 
 const router = express.Router();
 
@@ -30,6 +31,55 @@ const findPost = async (id: unknown) => {
 
     return post;
 };
+
+const findOwnPost = async (id: unknown, userId: string) => {
+    const post = isId(id) ? await Post.findById(id) : null;
+
+    if (!post) {
+        throw new NotFoundError();
+    }
+
+    if (post.author.toString() !== userId) {
+        throw new ForbiddenError();
+    }
+
+    return post;
+};
+
+const findComment = async (postId: unknown, commentId: unknown) => {
+    const comment = isId(postId) && isId(commentId)
+        ? await Comment.findOne({ _id: commentId, post: postId })
+        : null;
+
+    if (!comment) {
+        throw new NotFoundError();
+    }
+
+    return comment;
+};
+
+const postFields = [
+    body('title')
+        .isString()
+        .withMessage('A cím megadása kötelező')
+        .bail()
+        .trim()
+        .notEmpty()
+        .withMessage('A cím megadása kötelező')
+        .bail()
+        .isLength({ max: MAX_TITLE_LENGTH })
+        .withMessage(`A cím legfeljebb ${MAX_TITLE_LENGTH} karakter lehet`),
+    body('description')
+        .isString()
+        .withMessage('A leírás megadása kötelező')
+        .bail()
+        .trim()
+        .notEmpty()
+        .withMessage('A leírás megadása kötelező')
+        .bail()
+        .isLength({ max: MAX_DESCRIPTION_LENGTH })
+        .withMessage(`A leírás legfeljebb ${MAX_DESCRIPTION_LENGTH} karakter lehet`),
+];
 
 const commentBody = body('body')
     .isString()
@@ -55,28 +105,7 @@ router.post(
     '/api/posts',
     currentUser,
     requireAuth,
-    [
-        body('title')
-            .isString()
-            .withMessage('A cím megadása kötelező')
-            .bail()
-            .trim()
-            .notEmpty()
-            .withMessage('A cím megadása kötelező')
-            .bail()
-            .isLength({ max: MAX_TITLE_LENGTH })
-            .withMessage(`A cím legfeljebb ${MAX_TITLE_LENGTH} karakter lehet`),
-        body('description')
-            .isString()
-            .withMessage('A leírás megadása kötelező')
-            .bail()
-            .trim()
-            .notEmpty()
-            .withMessage('A leírás megadása kötelező')
-            .bail()
-            .isLength({ max: MAX_DESCRIPTION_LENGTH })
-            .withMessage(`A leírás legfeljebb ${MAX_DESCRIPTION_LENGTH} karakter lehet`),
-    ],
+    postFields,
     validateRequest,
     async (req: Request, res: Response) => {
         const { title, description } = req.body;
@@ -86,6 +115,24 @@ router.post(
         await post.populate('author', 'email');
 
         res.status(201).send(post);
+    }
+);
+
+router.put(
+    '/api/posts/:id',
+    currentUser,
+    requireAuth,
+    postFields,
+    validateRequest,
+    async (req: Request, res: Response) => {
+        const post = await findOwnPost(req.params.id, req.currentUser!.id);
+        const { title, description } = req.body;
+
+        post.set({ title, description, editedAt: new Date() });
+        await post.save();
+        await post.populate('author', 'email');
+
+        res.send(post);
     }
 );
 
@@ -142,20 +189,29 @@ router.put(
     [commentBody],
     validateRequest,
     async (req: Request, res: Response) => {
-        const { id, commentId } = req.params;
-        const comment = isId(id) && isId(commentId)
-            ? await Comment.findOne({ _id: commentId, post: id })
-            : null;
+        const comment = await findComment(req.params.id, req.params.commentId);
 
-        if (!comment) {
-            throw new NotFoundError();
-        }
-
-        if (comment.author.toString() !== req.currentUser!.id) {
+        if (comment.author.toString() !== req.currentUser!.id || comment.moderated) {
             throw new ForbiddenError();
         }
 
         comment.set('body', req.body.body);
+        await comment.save();
+        await comment.populate('author', 'email');
+
+        res.send(comment);
+    }
+);
+
+router.post(
+    '/api/posts/:id/comments/:commentId/moderate',
+    currentUser,
+    requireAuth,
+    async (req: Request, res: Response) => {
+        const comment = await findComment(req.params.id, req.params.commentId);
+        await findOwnPost(req.params.id, req.currentUser!.id);
+
+        comment.set({ body: MODERATED_COMMENT_TEXT, moderated: true });
         await comment.save();
         await comment.populate('author', 'email');
 
