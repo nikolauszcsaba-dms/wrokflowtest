@@ -4,6 +4,12 @@ export const listPosts = () => apiRequest('GET', '/api/posts');
 
 export const createPost = ({ title, description }) => apiRequest('POST', '/api/posts', { title, description });
 
+export const updatePost = (id, { title, description }) => apiRequest(
+    'PUT',
+    `/api/posts/${encodeURIComponent(id)}`,
+    { title, description }
+);
+
 export const getPost = (id) => apiRequest('GET', `/api/posts/${encodeURIComponent(id)}`);
 
 export const addComment = (postId, body, parentId = null) => apiRequest(
@@ -18,10 +24,23 @@ export const updateComment = (postId, commentId, body) => apiRequest(
     { body }
 );
 
-// Only hides the button; the server decides whether the edit is allowed.
-export const canEditComment = (comment, user) => Boolean(user?.id) && comment.author?.id === user.id;
+export const moderateComment = (postId, commentId) => apiRequest(
+    'POST',
+    `/api/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}/moderate`
+);
+
+const isAuthor = (item, user) => Boolean(user?.id) && item?.author?.id === user.id;
+
+// These only hide the buttons; the server decides whether the action is allowed.
+export const canEditComment = (comment, user) => isAuthor(comment, user) && !comment.moderated;
+
+export const canEditPost = (post, user) => isAuthor(post, user);
+
+export const canModerateComment = (post, comment, user) => isAuthor(post, user) && !comment.moderated;
 
 export const isEdited = (comment) => new Date(comment.updatedAt).getTime() > new Date(comment.createdAt).getTime();
+
+export const isPostEdited = (post) => Boolean(post?.editedAt);
 
 export const commentAnchor = (id) => `comment-${id}`;
 

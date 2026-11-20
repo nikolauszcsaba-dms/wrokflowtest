@@ -5,10 +5,14 @@ import { useAuth } from '../auth';
 import {
     addComment,
     canEditComment,
+    canEditPost,
+    canModerateComment,
     commentAnchor,
     formatDate,
     getPost,
     isEdited,
+    isPostEdited,
+    moderateComment,
     replaceComment,
     updateComment,
 } from '../blog';
@@ -104,9 +108,23 @@ const CommentEditor = ({ postId, comment, onSaved, onCancel }) => {
     );
 };
 
-const CommentItem = ({ postId, comment, parent, highlighted, onShowParent, onReply, onSaved }) => {
+const CommentItem = ({ post, comment, parent, highlighted, onShowParent, onReply, onSaved }) => {
     const { user } = useAuth();
     const [editing, setEditing] = useState(false);
+    const [moderating, setModerating] = useState(false);
+    const [errors, setErrors] = useState([]);
+
+    const handleModerate = async () => {
+        setErrors([]);
+        setModerating(true);
+        try {
+            onSaved(await moderateComment(post.id, comment.id));
+        } catch (err) {
+            setErrors(toErrors(err));
+        } finally {
+            setModerating(false);
+        }
+    };
 
     return (
         <li id={commentAnchor(comment.id)} className={highlighted ? 'comment comment-highlighted' : 'comment'}>
@@ -115,7 +133,7 @@ const CommentItem = ({ postId, comment, parent, highlighted, onShowParent, onRep
                     <strong>{comment.author.email}</strong>
                     {' · '}
                     <time dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time>
-                    {isEdited(comment) && ' · szerkesztve'}
+                    {comment.moderated ? ' · moderálva' : isEdited(comment) && ' · szerkesztve'}
                 </span>
                 {comment.parentId && (
                     <a
@@ -132,7 +150,7 @@ const CommentItem = ({ postId, comment, parent, highlighted, onShowParent, onRep
             </div>
             {editing ? (
                 <CommentEditor
-                    postId={postId}
+                    postId={post.id}
                     comment={comment}
                     onCancel={() => setEditing(false)}
                     onSaved={(updated) => {
@@ -142,11 +160,15 @@ const CommentItem = ({ postId, comment, parent, highlighted, onShowParent, onRep
                 />
             ) : (
                 <>
-                    <p className="comment-body">{comment.body}</p>
+                    <p className={comment.moderated ? 'comment-body comment-moderated' : 'comment-body'}>{comment.body}</p>
+                    <Errors errors={errors} />
                     <div className="comment-actions">
                         <button type="button" className="link-button" onClick={() => onReply(comment)}>Válasz</button>
                         {canEditComment(comment, user) && (
                             <button type="button" className="link-button" onClick={() => setEditing(true)}>Szerkesztés</button>
+                        )}
+                        {canModerateComment(post, comment, user) && (
+                            <button type="button" className="link-button" onClick={handleModerate} disabled={moderating}>Moderálás</button>
                         )}
                     </div>
                 </>
@@ -157,6 +179,7 @@ const CommentItem = ({ postId, comment, parent, highlighted, onShowParent, onRep
 
 const BlogPost = () => {
     const { id } = useParams();
+    const { user } = useAuth();
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
     const [errors, setErrors] = useState([]);
@@ -199,9 +222,15 @@ const BlogPost = () => {
             {post && (
                 <div className="blog">
                     <article className="card post-detail">
-                        <h1>{post.title}</h1>
+                        <div className="post-detail-header">
+                            <h1>{post.title}</h1>
+                            {canEditPost(post, user) && (
+                                <Link to={`/blog/${post.id}/edit`} className="btn btn-secondary">Szerkesztés</Link>
+                            )}
+                        </div>
                         <p className="post-meta">
                             {post.author.email} · <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+                            {isPostEdited(post) && ' · szerkesztve'}
                         </p>
                         <p className="post-description">{post.description}</p>
                     </article>
@@ -212,7 +241,7 @@ const BlogPost = () => {
                             {comments.map((comment) => (
                                 <CommentItem
                                     key={comment.id}
-                                    postId={post.id}
+                                    post={post}
                                     comment={comment}
                                     parent={comment.parentId ? byId.get(comment.parentId) : null}
                                     highlighted={highlighted === comment.id}
