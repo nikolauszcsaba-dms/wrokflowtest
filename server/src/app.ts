@@ -8,6 +8,7 @@ import { avatarRouter } from './routes/avatar';
 import { changePasswordRouter } from './routes/change-password';
 import { currentUserRouter } from './routes/current-user';
 import { healthRouter } from './routes/health';
+import { postsRouter } from './routes/posts';
 import { profileRouter } from './routes/profile';
 import { signinRouter } from './routes/signin';
 import { signoutRouter } from './routes/signout';
@@ -34,6 +35,7 @@ app.use(avatarRouter);
 app.use(signinRouter);
 app.use(signoutRouter);
 app.use(signupRouter);
+app.use(postsRouter);
 
 if (process.env.CLIENT_DIR) {
     const clientDir = path.resolve(process.env.CLIENT_DIR);
